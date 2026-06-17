@@ -1,0 +1,18 @@
+MODELO RECOMENDADO: Linear Regression
+Critério: maior R² e menor RMSE no conjunto de teste.
+
+Métricas no conjunto de teste (target ordinal: 0=Low, 1=Medium, 2=High):
+                        MAE      RMSE        R2
+Modelo                                         
+Linear Regression  0.634912  0.764302  0.039962
+Random Forest      0.665142  0.784482 -0.011403
+XGBoost            0.639944  0.765790  0.036219
+
+Validação cruzada (K-Fold k=5):
+                   MAE_mean   MAE_std  RMSE_mean  RMSE_std   R2_mean    R2_std
+Modelo                                                                        
+Linear Regression  0.585243  0.009655   0.728875  0.008167  0.020842  0.020973
+Random Forest      0.613826  0.012636   0.746667  0.015892 -0.027770  0.040719
+XGBoost            0.595507  0.009067   0.733492  0.009407  0.008306  0.026655
+
+Nota: dados de survey auto-reportados — ver docs/limitations.md.

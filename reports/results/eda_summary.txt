@@ -1,0 +1,15 @@
+=== EDA SUMMARY — Remote Work Health Impact Survey 2025 ===
+Dataset: https://www.kaggle.com/datasets/pratyushpuri/remote-work-health-impact-survey-2025
+
+--- Distribuição de Burnout_Level ---
+  Low: 23.6%
+  Medium: 43.3%
+  High: 33.1%
+
+--- Média Burnout por Work_Arrangement ---
+  Hybrid: 1.166
+  Onsite: 0.963
+  Remote: 1.327
+
+--- Correlação mais forte com Burnout ---
+  Social_Isolation_Score: 0.0435
