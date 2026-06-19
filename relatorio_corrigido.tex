@@ -1,0 +1,1005 @@
+
+\documentclass[conference]{IEEEtran}
+
+% ── Fontes ────────────────────────────────────────────────────────────────────
+\usepackage{fontspec}
+\defaultfontfeatures{Ligatures=TeX}
+\setmainfont{TeX Gyre Termes}
+\setmonofont[Scale=0.86]{Latin Modern Mono}
+\usepackage{microtype}
+
+% ── Matemática ────────────────────────────────────────────────────────────────
+\usepackage{amsmath, amssymb}
+
+% ── Figuras e tabelas ─────────────────────────────────────────────────────────
+\usepackage{graphicx}
+\graphicspath{{reports/figures/}}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage[caption=false,font=footnotesize]{subfig}
+
+% ── Código ────────────────────────────────────────────────────────────────────
+\usepackage{listings}
+\usepackage{xcolor}
+
+% ── Citações e links ──────────────────────────────────────────────────────────
+\usepackage{cite}
+\usepackage{url}
+\usepackage[hidelinks]{hyperref}
+\usepackage[strings]{underscore}
+
+\definecolor{codebg}{RGB}{250,250,250}
+\definecolor{codegreen}{RGB}{40,120,40}
+\definecolor{codeblue}{RGB}{0,60,180}
+\definecolor{codeorange}{RGB}{180,60,0}
+\definecolor{codegray}{RGB}{130,130,130}
+
+\lstdefinestyle{python}{
+language=Python,
+backgroundcolor=\color{codebg},
+commentstyle=\color{codegreen}\itshape,
+keywordstyle=\color{codeblue}\bfseries,
+stringstyle=\color{codeorange},
+numberstyle=\tiny\color{codegray},
+basicstyle=\ttfamily\footnotesize,
+breaklines=true,
+captionpos=b,
+numbers=left,
+numbersep=6pt,
+showstringspaces=false,
+tabsize=4,
+frame=single,
+rulecolor=\color{codegray!40},
+xleftmargin=1.5em,
+aboveskip=8pt,
+belowskip=4pt,
+}
+\lstset{style=python}
+
+% ── Auxiliares ────────────────────────────────────────────────────────────────
+\newcommand{\fonte}[1][elaborado pelos autores.]{%
+\par\vspace{1pt}{\footnotesize\centering Fonte: #1\par}}
+\newcommand{\instituicao}{Universidade Federal de São Paulo — UNIFESP}
+\newcommand{\disciplina}{Inteligência Artificial}
+\newcommand{\cidade}{São José dos Campos}
+
+\title{Predição e Classificação de Risco de Burnout\\{\large Pipeline de Aprendizado de Máquina Aplicado à Gestão de Saúde Ocupacional}}
+
+
+\author{%
+\IEEEauthorblockN{Breno Porto Pinheiro do Prado, RA 185196\\
+Guilherme Bento Ramos, RA 185226}
+\IEEEauthorblockA{\instituicao\\
+\cidade\\
+2026}
+}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\begin{document}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\maketitle
+
+\begin{abstract}
+O esgotamento profissional (\textit{burnout}) é um problema relevante de
+saúde ocupacional, associado a impactos sobre bem-estar, produtividade,
+rotatividade e absenteísmo. Este trabalho apresenta um \textit{pipeline}
+modular de aprendizado de máquina para estimar e classificar risco de
+\textit{burnout}, com alinhamento aos Objetivos de Desenvolvimento
+Sustentável ODS~3, ODS~8 e ODS~10 da ONU. O estudo utiliza o
+\textit{dataset} \textit{``Remote Work Health Impact Survey 2025''}
+(Kaggle), composto por 3.157 registros coletados em junho de 2025. O
+sistema percorre cinco etapas: análise exploratória, pré-processamento
+com prevenção de vazamento de dados, treinamento comparativo de
+Regressão Linear, Random Forest e XGBoost, avaliação com validação
+cruzada K-Fold e análise de equidade, além de uma função de
+\textit{scoring} individual. O alvo \texttt{Burnout_Level}, categórico
+ordinal com classes Low, Medium e High, é convertido para escala
+numérica 0--2 e tratado como regressão ordinal. A predição final é
+normalizada para um escore de risco em $[0,1]$, sem interpretação como
+probabilidade calibrada. No conjunto de teste, a Regressão Linear obteve
+o melhor desempenho numérico (MAE=0,635; RMSE=0,764; R²=0,040),
+enquanto o XGBoost apresentou resultado próximo (MAE=0,640; RMSE=0,766;
+R²=0,036) e foi utilizado na interface de \textit{scoring} implementada.
+Os resultados indicam baixo poder explicativo global, compatível com as
+fracas correlações observadas nos dados de survey auto-reportados. Na
+EDA, trabalhadores em regime \textit{remote} apresentaram burnout médio
+superior ao regime presencial (1,33 vs.\ 0,96 na escala ordinal).
+\end{abstract}
+
+\begin{IEEEkeywords}
+burnout, aprendizado de máquina, regressão, XGBoost, Random Forest, saúde ocupacional, \textit{scoring} de risco, ODS
+\end{IEEEkeywords}
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Introdução}
+\label{sec:intro}
+% ═════════════════════════════════════════════════════════════════════════════
+
+O esgotamento profissional (\textit{burnout}) é um fenômeno psicossocial de
+impacto crescente nas organizações contemporâneas. Definido por Maslach e
+Jackson \cite{maslach1981} como síndrome de exaustão emocional,
+despersonalização e redução do senso de realização pessoal, o
+\textit{burnout} foi reconhecido em 2019 pela Organização Mundial da Saúde
+(OMS) como fenômeno ocupacional na Classificação Internacional de Doenças
+(CID-11). Pesquisas de longo prazo associam o fenômeno a absenteísmo,
+intenção de abandono de cargo, doenças cardiovasculares e transtornos
+mentais \cite{salvagioni2017}.
+
+Além do impacto individual, o burnout gera custos para organizações e para
+sistemas de saúde. Por esse motivo, o tema se relaciona aos seguintes
+Objetivos de Desenvolvimento Sustentável da ONU \cite{onu_ods}:
+
+\begin{itemize}
+\item \textbf{ODS 3 — Saúde e Bem-Estar:} promoção de ambientes de
+trabalho saudáveis e redução de agravos à saúde mental;
+\item \textbf{ODS 8 — Trabalho Decente e Crescimento Econômico:}
+apoio a condições de trabalho seguras, saudáveis e sustentáveis;
+\item \textbf{ODS 10 — Redução das Desigualdades:} identificação de
+diferenças entre subgrupos para orientar análises de equidade.
+\end{itemize}
+
+Técnicas de aprendizado de máquina podem apoiar a triagem de risco ao
+identificar padrões em dados estruturados sobre regime de trabalho, carga
+horária, saúde reportada, isolamento social e equilíbrio vida-trabalho. No
+entanto, o sistema proposto neste trabalho não deve ser interpretado como
+instrumento de diagnóstico clínico. O \textit{pipeline} produz um escore
+normalizado de risco com base em padrões observados no conjunto de treino.
+A interpretação dos resultados e qualquer decisão sobre acompanhamento ou
+intervenção devem envolver profissionais habilitados e a equipe responsável
+pela gestão de pessoas.
+
+Este trabalho desenvolve um \textit{pipeline} modular, com código aberto e
+reprodutível via \texttt{SEED,=,42}, que compara três modelos de regressão,
+avalia o erro por subgrupos e disponibiliza uma interface de
+\textit{scoring} individual em terminal.
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Dataset}
+\label{sec:dataset}
+% ═════════════════════════════════════════════════════════════════════════════
+
+\subsection{Descrição}
+
+O \textit{dataset} \textit{``Remote Work Health Impact Survey 2025''}
+\cite{kaggle_dataset}, disponível publicamente na plataforma Kaggle,
+reúne respostas de um survey global aplicado em junho de 2025 a
+trabalhadores em regimes remoto, híbrido e presencial. O conjunto possui
+\textbf{3.157 registros} e \textbf{14 colunas} (Tabela~\ref{tab:features}).
+
+A variável alvo é \texttt{Burnout_Level}, categórica ordinal com três
+categorias: \texttt{Low}, \texttt{Medium} e \texttt{High}. Para o treinamento,
+as classes foram convertidas para 0, 1 e 2, respectivamente. A distribuição
+do alvo é: Low = 23,6\%, Medium = 43,3\% e High = 33,1\%. Nenhum registro
+apresenta alvo ausente.
+
+\begin{table*}[!t]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\caption{Variáveis do \textit{dataset} \textit{``Remote Work Health Impact Survey 2025''}.}
+\label{tab:features}
+\begin{tabular}{lllc}
+\toprule
+\textbf{Coluna}            & \textbf{Tipo}     & \textbf{Faixa / Valores}         & \textbf{Papel}                      \\
+\midrule
+Survey_Date               & Data              & Junho/2025                       & Descartada                          \\
+Age                        & Num.\ inteira     & 22--65                           & Feature                             \\
+Gender                     & Categ.\ nominal   & Female, Male, Non-binary, \ldots & Feature                             \\
+Region                     & Categ.\ nominal   & 6 regiões globais                & Feature                             \\
+Industry                   & Categ.\ nominal   & 9 setores                        & Feature                             \\
+Job_Role                  & Categ.\ nominal   & 24 cargos                        & Feature                             \\
+Work_Arrangement          & Categ.\ ordinal   & Onsite, Hybrid, Remote           & Feature                             \\
+Hours_Per_Week           & Num.\ inteira     & 35--65                           & Feature                             \\
+Mental_Health_Status     & Categ.\ nominal   & 6 condições + None               & Feature                             \\
+\textbf{Burnout_Level}    & Categ.\ ordinal   & Low, Medium, High                & \textbf{Alvo}                       \\
+Work_Life_Balance_Score & Num.\ ordinal     & 1--5                             & Feature                             \\
+Physical_Health_Issues   & Texto multi-label & var.\ ou ausente                 & $\to$ \texttt{has_physical_issue} \\
+Social_Isolation_Score   & Num.\ ordinal     & 1--5                             & Feature                             \\
+Salary_Range              & Categ.\ ordinal   & $40K--$120K+                   & Feature                             \\
+\bottomrule
+\end{tabular}
+\fonte
+\end{table*}
+
+As únicas colunas com valores ausentes são
+\texttt{Mental_Health_Status} (799 registros, 25,3\%) e
+\texttt{Physical_Health_Issues} (280 registros, 8,9\%). A primeira é
+preenchida com a categoria \texttt{None}; a segunda é convertida em uma
+variável binária que indica se houve algum problema físico reportado.
+
+\subsection{Natureza do conjunto de dados}
+
+Os dados são auto-reportados por meio de survey anônimo. Isso torna o
+conjunto útil para um estudo aplicado de aprendizado supervisionado, mas
+também impõe limitações: respostas podem conter viés de autopercepção,
+viés de seleção amostral e inconsistências típicas de questionários.
+
+O campo \texttt{Survey_Date} é uniforme em junho de 2025 e foi descartado
+por não oferecer variação temporal útil para o modelo. Como o conjunto não
+contém dados longitudinais, o estudo não captura mudanças de risco ao longo
+do tempo.
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Arquitetura do Pipeline}
+\label{sec:pipeline}
+% ═════════════════════════════════════════════════════════════════════════════
+
+O sistema é estruturado como um \textit{pipeline} sequencial de cinco etapas,
+cada uma implementada em um módulo Python dedicado (Tabela~\ref{tab:pipeline}).
+Essa separação facilita execução, teste e manutenção dos componentes.
+
+\begin{table*}[!t]
+\centering
+\caption{Componentes do pipeline e respectivos módulos.}
+\label{tab:pipeline}
+\begin{tabular}{clll}
+\toprule
+\textbf{Etapa} & \textbf{Módulo}                         & \textbf{Responsabilidade} & \textbf{Saídas} \\
+\midrule
+1              & \texttt{src/eda.py}
+& Análise exploratória
+& 5 gráficos em \texttt{reports/figures/}                                               \\
+2              & \texttt{src/preprocessing.py}
+& Limpeza e transformação
+& CSVs processados + \texttt{.pkl}                                                      \\
+3              & \texttt{src/training.py}
+& Treinamento dos modelos
+& 3 modelos em \texttt{models/}                                                         \\
+4              & \texttt{src/evaluation.py}
+& Avaliação e comparação
+& Tabelas + gráficos de resultado                                                       \\
+5              & \texttt{src/scoring.py}
+& Scoring individual
+& Função \texttt{predict_burnout()}                                                    \\
+\bottomrule
+\end{tabular}
+\fonte
+\end{table*}
+
+O fluxo de dados segue a ordem das etapas: a EDA descreve o comportamento
+do conjunto; o pré-processamento produz os dados limpos e os artefatos de
+transformação (\texttt{imputer.pkl} e \texttt{scaler.pkl}); o treinamento
+gera os modelos serializados; a avaliação compara os modelos sobre o
+conjunto de teste e por validação cruzada; e o \textit{scoring} reutiliza
+os artefatos de transformação com o modelo carregado pela interface.
+
+A reprodutibilidade é controlada pelo parâmetro global \texttt{SEED,=,42},
+usado na divisão treino/teste, no Random Forest, no XGBoost e na validação
+cruzada. Nas mesmas condições de ambiente, dados e versões das bibliotecas,
+a execução do \textit{pipeline} deve produzir resultados reprodutíveis.
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Etapa 1 — Análise Exploratória dos Dados}
+\label{sec:eda}
+% ═════════════════════════════════════════════════════════════════════════════
+
+\subsection{Distribuição da variável alvo}
+
+O \texttt{Burnout_Level} é distribuído em três categorias: \textbf{Low}
+(23,6\%), \textbf{Medium} (43,3\%) e \textbf{High} (33,1\%)
+(Figura~\ref{fig:dist}). A concentração em \textit{Medium} indica que a
+maior parte dos respondentes relatou nível intermediário de esgotamento.
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=0.99\textwidth,height=0.32\textheight,keepaspectratio]{burnout_distribution.png}
+\caption{Distribuição da variável alvo \texttt{Burnout_Level} (barras por categoria).}
+\fonte
+\label{fig:dist}
+\end{figure*}
+
+\subsection{Correlações entre variáveis numéricas}
+
+O mapa de calor de correlação de Pearson (Figura~\ref{fig:heat}) mostra
+correlações fracas entre as variáveis numéricas e o alvo. A maior correlação
+com \texttt{Burnout_Level}, codificado como 0--2, é a de
+\texttt{Social_Isolation_Score} (+0,044). O
+\texttt{Work_Life_Balance_Score} apresenta correlação levemente negativa
+($-$0,018), indicando associação fraca entre melhor equilíbrio
+vida-trabalho e menor burnout. Idade e horas semanais apresentam correlação
+próxima de zero.
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=0.99\textwidth,height=0.32\textheight,keepaspectratio]{correlation_heatmap.png}
+\caption{Mapa de calor de correlação de Pearson entre variáveis numéricas.}
+\fonte
+\label{fig:heat}
+\end{figure*}
+
+\subsection{Análise por subgrupos}
+
+A Figura~\ref{fig:subgroups} apresenta a distribuição do
+\texttt{Burnout_Level} segmentada por regime de trabalho, gênero e setor.
+Os principais resultados observados são:
+
+\begin{itemize}
+\item \textbf{Regime de trabalho:} trabalhadores em regime
+\textit{remote} apresentam burnout médio de 1,33 na escala 0--2,
+acima do regime híbrido (1,17) e presencial (0,96). Neste
+conjunto, o trabalho remoto se associa a maior nível médio de
+burnout;
+\item \textbf{Gênero:} as diferenças entre gêneros são pequenas
+(variação inferior a 2 p.p.\ em burnout alto), sem evidência de
+um subgrupo sistematicamente mais afetado;
+\item \textbf{Setor:} a prevalência de burnout alto varia entre
+setores, com \textit{Customer Service} e \textit{Manufacturing}
+entre os mais afetados.
+\end{itemize}
+
+\begin{figure*}[!t]
+\centering
+\subfloat[Por regime de trabalho]{\includegraphics[width=0.49\textwidth,height=0.26\textheight,keepaspectratio]{burnout_by_work_location.png}}\hfill
+\subfloat[Por gênero]{\includegraphics[width=0.49\textwidth,height=0.26\textheight,keepaspectratio]{burnout_by_gender.png}}
+
+\vspace{0.8em}
+
+\subfloat[Por setor (burnout alto)]{\includegraphics[width=0.76\textwidth,height=0.26\textheight,keepaspectratio]{burnout_by_industry.png}}
+\caption{Distribuição do \texttt{Burnout\_Level} segmentado por subgrupos.}
+\fonte
+\label{fig:subgroups}
+
+\end{figure*}
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Etapa 2 — Pré-processamento}
+\label{sec:preproc}
+% ═════════════════════════════════════════════════════════════════════════════
+
+\subsection{Transformações aplicadas}
+
+O módulo \texttt{src/preprocessing.py} aplica as transformações abaixo antes
+do treinamento dos modelos:
+
+\begin{enumerate}
+\item \textbf{Remoção do alvo nulo:} nenhuma linha com
+\texttt{Burnout_Level} ausente foi encontrada.
+
+\item \textbf{Encoding do alvo ordinal:} \texttt{Burnout\_Level}
+      é convertido para inteiro: Low$\to$0, Medium$\to$1, High$\to$2.
+      O problema é tratado como regressão ordinal, e o escore de
+      interface é calculado por $\hat{y}/2$, limitado ao intervalo
+      $[0,1]$.
+
+\item \textbf{Feature engineering — \texttt{has\_physical\_issue}:}
+      a coluna \texttt{Physical\_Health\_Issues} contém texto
+      multi-label, como ``Back Pain; Eye Strain''. Ela é substituída
+      pelo indicador binário:
+      \begin{equation}
+	      \texttt{has\_physical\_issue} =
+	      \begin{cases}
+		      1 & \text{se há problema físico reportado} \\
+		      0 & \text{caso contrário}
+	      \end{cases}
+      \end{equation}
+
+\item \textbf{Remoção de colunas:} \texttt{Survey\_Date} é descartada
+      por ser uniforme em junho de 2025; \texttt{Physical\_Health\_Issues}
+      é removida após a criação de \texttt{has\_physical\_issue}.
+
+\item \textbf{Tratamento de \texttt{Mental\_Health\_Status}:}
+      os 799 valores ausentes (25,3\%) são preenchidos com a categoria
+      \texttt{None}, interpretada como ausência de condição reportada.
+
+\item \textbf{Encoding das categóricas:} variáveis com ordem natural
+      recebem encoding ordinal, como \texttt{Work\_Arrangement}
+      (Onsite$\to$0, Hybrid$\to$1, Remote$\to$2) e
+      \texttt{Salary\_Range}. Variáveis nominais, como \texttt{Gender},
+      \texttt{Region}, \texttt{Industry} e \texttt{Job\_Role}, recebem
+      mapeamento explícito por categoria.
+
+\item \textbf{Divisão 80/20:} o conjunto é particionado em
+      2.525 registros de treino e 632 de teste, com
+      \texttt{random\_state=42}, antes do ajuste do imputador e do
+      escalonador.
+
+\item \textbf{Imputação por mediana:} o \texttt{SimpleImputer} é
+      ajustado apenas no treino. Valores ausentes após o encoding são
+      preenchidos com a mediana do conjunto de treino.
+
+\item \textbf{Normalização MinMaxScaler:} todas as \textit{features}
+      são escalonadas para $[0,1]$, com ajuste feito apenas no treino.
+
+\end{enumerate}
+
+Os transformadores ajustados são salvos em \texttt{models/imputer.pkl} e
+\texttt{models/scaler.pkl}, sendo reutilizados na avaliação e no
+\textit{scoring}.
+
+\subsection{Prevenção de \textit{data leakage}}
+\label{sec:leakage}
+
+\textit{Data leakage} ocorre quando informações do conjunto de teste
+influenciam o treinamento. Em pré-processamento, isso pode ocorrer quando
+o imputador ou o escalonador são ajustados sobre o conjunto completo antes
+da divisão treino/teste.
+
+Neste trabalho, a prevenção de \textit{leakage} segue a ordem abaixo:
+
+\begin{enumerate}
+\item Dividir o \textit{dataset} em treino e teste;
+\item Ajustar (\textit{fit}) o imputador somente no treino;
+\item Aplicar (\textit{transform}) o imputador ao treino e ao teste;
+\item Ajustar o escalonador somente no treino;
+\item Aplicar o escalonador ao treino e ao teste.
+\end{enumerate}
+
+Se o imputador fosse ajustado sobre todos os dados, a mediana incorporaria
+informação do conjunto de teste. O mesmo vale para o escalonador, que
+passaria a usar mínimos e máximos observados no teste. A ordem adotada evita
+esse vazamento.
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Etapa 3 — Modelos de Aprendizado de Máquina}
+\label{sec:models}
+% ═════════════════════════════════════════════════════════════════════════════
+
+Três modelos de regressão são treinados em complexidade crescente:
+Regressão Linear, Random Forest e XGBoost. A comparação permite verificar
+se modelos mais flexíveis oferecem ganho mensurável em relação a um
+\textit{baseline} simples.
+
+\subsection{Regressão Linear — \textit{baseline}}
+
+A Regressão Linear estima o alvo por uma combinação linear das
+\textit{features}:
+
+\begin{equation}
+\hat{y} = w_1 x_1 + w_2 x_2 + \cdots + w_p x_p + b
+= \mathbf{w}^{!\top}\mathbf{x} + b
+\end{equation}
+
+Os parâmetros $\mathbf{w}$ e $b$ são estimados pelo método dos mínimos
+quadrados ordinários (OLS), que minimiza a soma dos quadrados dos resíduos:
+
+\begin{equation}
+\hat{\mathbf{w}} = \arg\min_{\mathbf{w}}
+\sum_{i=1}^{n} \bigl(y_i - \mathbf{w}^{!\top}\mathbf{x}_i - b\bigr)^2
+\end{equation}
+
+A principal vantagem da Regressão Linear é a interpretabilidade. Cada
+coeficiente representa a variação esperada no alvo para uma unidade de
+mudança na \textit{feature}, mantendo as demais constantes. Neste trabalho,
+o coeficiente de maior magnitude foi o de \texttt{Work_Arrangement}
+($w=+0{,}364$), indicando maior peso linear do regime de trabalho na
+predição ordinal.
+
+\subsection{Random Forest}
+
+O Random Forest \cite{breiman2001} é um método \textit{ensemble} que
+constrói $B$ árvores de decisão e combina suas predições pela média:
+
+\begin{equation}
+\hat{y}_{\text{RF}} = \frac{1}{B} \sum_{b=1}^{B} T_b(\mathbf{x})
+\end{equation}
+
+Cada árvore é treinada sobre uma amostra \textit{bootstrap} do conjunto de
+treino e considera um subconjunto aleatório de \textit{features} em cada
+divisão. Esses mecanismos reduzem a correlação entre árvores e tendem a
+diminuir a variância do modelo.
+
+No conjunto estudado, o Random Forest distribuiu importância entre várias
+\textit{features}, sem um único preditor dominante:
+
+\begin{itemize}
+\item \texttt{Age}: \textbf{16,5\%}
+\item \texttt{Hours_Per_Week}: 15,3\%
+\item \texttt{Job_Role}: 13,4\%
+\item \texttt{Industry}: 9,1\%
+\item \texttt{Mental_Health_Status}: 8,4\%
+\item \texttt{Region}: 7,9\%
+\item \texttt{Social_Isolation_Score}: 6,9\%
+\item \texttt{Salary_Range}: 6,8\%
+\item \texttt{Work_Life_Balance_Score}: 6,8\%
+\item \texttt{Work_Arrangement}: 4,1\%
+\item \texttt{Gender}: 3,5\%
+\item \texttt{has_physical_issue}: 1,4\%
+\end{itemize}
+
+A configuração utilizada foi \texttt{n_estimators=100},
+\texttt{random_state=42} e \texttt{n_jobs=-1}.
+
+\subsection{XGBoost}
+
+O XGBoost (\textit{Extreme Gradient Boosting}) \cite{chen2016} é um
+algoritmo de \textit{gradient boosting} que constrói árvores de forma
+sequencial. Cada nova árvore é treinada para reduzir os resíduos do modelo
+acumulado até a iteração anterior:
+
+\begin{equation}
+F_t(\mathbf{x}) = F_{t-1}(\mathbf{x}) + \eta \cdot f_t(\mathbf{x})
+\end{equation}
+
+O parâmetro $\eta$ (\texttt{learning_rate}) controla a contribuição de cada
+árvore. A profundidade máxima (\texttt{max_depth}) limita a complexidade
+das árvores e a capacidade de capturar interações. O modelo também inclui
+regularização, útil para reduzir risco de \textit{overfitting}.
+
+Os hiperparâmetros foram otimizados com \texttt{GridSearchCV}, avaliando
+12 combinações com validação cruzada de 5 \textit{folds}, totalizando
+60 ajustes. Os melhores hiperparâmetros encontrados foram:
+\texttt{learning_rate=0,05}, \texttt{max_depth=3} e
+\texttt{n_estimators=100}, com MSE médio de validação cruzada de 0,5386.
+
+\begin{table}[!t]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\caption{Espaço de busca de hiperparâmetros do XGBoost.}
+\label{tab:xgb_grid}
+\begin{tabular}{lll}
+\toprule
+\textbf{Hiperparâmetro} & \textbf{Valores testados} & \textbf{Melhor valor} \\
+\midrule
+\texttt{n_estimators}  & 100, 200                  & 100                   \\
+\texttt{max_depth}     & 3, 5                      & 3                     \\
+\texttt{learning_rate} & 0,05; 0,10; 0,20          & 0,05                  \\
+\bottomrule
+\end{tabular}
+\fonte
+\end{table}
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Etapa 4 — Avaliação dos Modelos}
+\label{sec:eval}
+% ═════════════════════════════════════════════════════════════════════════════
+
+\subsection{Métricas de avaliação}
+
+Três métricas de regressão são calculadas para cada modelo:
+
+\begin{itemize}
+\item \textbf{MAE} (Erro Médio Absoluto):
+$\text{MAE} = \frac{1}{n}\sum|y_i - \hat{y}_i|$.
+É interpretável na escala ordinal 0--2 do alvo;
+\item \textbf{RMSE} (Raiz do Erro Quadrático Médio):
+$\text{RMSE} = \sqrt{\frac{1}{n}\sum(y_i-\hat{y}_i)^2}$.
+Penaliza erros maiores de forma quadrática;
+\item \textbf{R²} (Coeficiente de Determinação):
+$R^2 = 1 - \frac{\sum(y_i-\hat{y}_i)^2}{\sum(y_i-\bar{y})^2}$.
+Mede a proporção da variância do alvo explicada pelo modelo.
+\end{itemize}
+
+\subsection{Resultados no conjunto de teste}
+
+A Tabela~\ref{tab:test} apresenta as métricas calculadas sobre os 632
+registros de teste, separados antes do ajuste dos transformadores. Os
+modelos tiveram MAE semelhante, mas baixo poder explicativo. A Regressão
+Linear obteve o melhor resultado no conjunto de teste, com maior R² e menor
+RMSE. O Random Forest apresentou R² negativo, indicando desempenho pior do
+que prever a média simples do alvo.
+
+\begin{table}[!t]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\caption{Métricas no conjunto de teste ($n = 632$). Alvo ordinal: 0,=,Low, 1,=,Medium, 2,=,High.}
+\label{tab:test}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Modelo}           & \textbf{MAE}   & \textbf{RMSE}  & \textbf{R²}    \\
+\midrule
+\textbf{Regressão Linear} & \textbf{0,635} & \textbf{0,764} & \textbf{0,040} \\
+Random Forest             & 0,665          & 0,784          & $-$0,011       \\
+XGBoost                   & 0,640          & 0,766          & 0,036          \\
+\bottomrule
+\end{tabular}
+\fonte
+\end{table}
+
+O resultado indica que, para este conjunto de dados, o aumento de
+complexidade não trouxe ganho relevante em relação ao \textit{baseline}
+linear. Isso é coerente com as correlações fracas observadas na EDA, em que
+a maior correlação numérica com o alvo foi de aproximadamente 0,044. Assim,
+a principal limitação não parece ser apenas a escolha do algoritmo, mas o
+baixo sinal preditivo das variáveis disponíveis.
+
+\subsection{Validação cruzada K-Fold}
+
+A validação cruzada K-Fold com $k=5$, aplicada ao conjunto de treino,
+verifica a estabilidade dos resultados em diferentes partições
+(Tabela~\ref{tab:cv}). A Regressão Linear apresenta o melhor MAE médio,
+menor RMSE médio e maior R² médio. O XGBoost fica próximo no erro médio,
+mas não supera o \textit{baseline} linear.
+
+\begin{table*}[!t]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\caption{Validação cruzada K-Fold ($k=5$) no conjunto de treino.
+m,=,média; dp,=,desvio padrão entre \textit{folds}.}
+\label{tab:cv}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Modelo}
+& $\text{MAE}_{\text{m}}$   & $\text{MAE}_{\text{dp}}$
+& $\text{RMSE}_{\text{m}}$  & $\text{RMSE}_{\text{dp}}$
+& $\text{R}^{2}_{\text{m}}$ & $\text{R}^{2}_{\text{dp}}$                                                   \\
+\midrule
+\textbf{Reg.\ Linear}
+& \textbf{0,585}          & 0,010
+& \textbf{0,729}          & 0,008
+& \textbf{0,021}          & 0,021 \\
+Random Forest    & 0,614                   & 0,013                    & 0,747          & 0,016 & $-$0,028       & 0,041 \\
+XGBoost          & 0,596                   & 0,009                    & 0,733          & 0,009 & 0,008          & 0,027 \\
+\bottomrule
+\end{tabular}
+\fonte
+\end{table*}
+
+A baixa variação entre \textit{folds} sugere estabilidade das métricas, mas
+não prova ausência completa de \textit{overfitting}. A interpretação mais
+adequada é que os modelos são estáveis, porém limitados pelo baixo poder
+explicativo das \textit{features} disponíveis.
+
+\subsection{Dispersão real $\times$ predito}
+
+A Figura~\ref{fig:rvp} apresenta os gráficos de dispersão entre valores
+reais e preditos. Como o R² é baixo, os pontos ficam dispersos em torno da
+diagonal. Os modelos tendem a prever valores próximos da média do alvo,
+especialmente da categoria \textit{Medium}, que concentra 43,3\% dos
+registros.
+
+\begin{figure*}[!t]
+\centering
+\subfloat[Regressão Linear]{\includegraphics[width=0.49\textwidth,height=0.26\textheight,keepaspectratio]{real_vs_pred_linear_regression.png}}\hfill
+\subfloat[Random Forest]{\includegraphics[width=0.49\textwidth,height=0.26\textheight,keepaspectratio]{real_vs_pred_random_forest.png}}
+
+\vspace{0.8em}
+
+\subfloat[XGBoost — modelo usado no scoring]{\includegraphics[width=0.76\textwidth,height=0.26\textheight,keepaspectratio]{real_vs_pred_xgboost.png}}
+\caption{Dispersão real $\times$ predito para os três modelos. A diagonal
+	representa ajuste perfeito ($\hat{y} = y$).}
+\fonte
+\label{fig:rvp}
+
+\end{figure*}
+
+\subsection{Importância das \textit{features}}
+
+A Figura~\ref{fig:fimp} mostra a importância relativa das \textit{features}
+nos modelos de \textit{ensemble}. No Random Forest, as maiores importâncias
+foram \texttt{Age} (16,5\%), \texttt{Hours_Per_Week} (15,3\%) e
+\texttt{Job_Role} (13,4\%). No XGBoost, \texttt{Work_Arrangement}
+apresentou a maior importância relativa (29,3\%), em concordância com o
+achado exploratório de diferenças de burnout médio por regime de trabalho.
+
+\begin{figure*}[!t]
+\centering
+\subfloat[Random Forest]{\includegraphics[width=0.49\textwidth,height=0.26\textheight,keepaspectratio]{feature_importance_random_forest.png}}\hfill
+\subfloat[XGBoost]{\includegraphics[width=0.49\textwidth,height=0.26\textheight,keepaspectratio]{feature_importance_xgboost.png}}
+\caption{Importância relativa das \textit{features} nos modelos de
+\textit{ensemble}. No Random Forest, \texttt{Age} e
+\texttt{Hours_Per_Week} lideram; no XGBoost,
+\texttt{Work_Arrangement} apresenta a maior importância.}
+\fonte
+\label{fig:fimp}
+\end{figure*}
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Análise de Equidade}
+\label{sec:equity}
+% ═════════════════════════════════════════════════════════════════════════════
+
+A análise de equidade verifica se os modelos apresentam erros
+sistematicamente maiores para determinados subgrupos. Neste trabalho, a
+comparação é feita por MAE entre grupos de gênero e regime de trabalho. A
+Figura~\ref{fig:equity} e a Tabela~\ref{tab:equity} mostram os resultados.
+
+\begin{figure*}[!t]
+\centering
+\subfloat[MAE por gênero]{\includegraphics[width=0.49\textwidth,height=0.26\textheight,keepaspectratio]{equity_by_gender.png}}\hfill
+\subfloat[MAE por regime de trabalho]{\includegraphics[width=0.49\textwidth,height=0.26\textheight,keepaspectratio]{equity_by_work_location.png}}
+\caption{Comparação de MAE por subgrupo nos três modelos.}
+\fonte
+\label{fig:equity}
+\end{figure*}
+
+\begin{table*}[!t]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\caption{MAE por subgrupo demográfico e regime de trabalho.}
+\label{tab:equity}
+\begin{tabular}{lcccc|ccc}
+\toprule
+\textbf{Modelo} & \textbf{Female} & \textbf{Male}   & \textbf{Non-bin.} & \textbf{Pref.}
+& \textbf{Hybrid} & \textbf{Onsite} & \textbf{Remote}                                            \\
+\midrule
+Reg.\ Linear    & 0,638           & 0,627           & 0,662             & 0,781          & 0,652 & 0,632 & 0,616 \\
+Random Forest   & 0,669           & 0,664           & 0,589             & 0,686          & 0,697 & 0,668 & 0,609 \\
+XGBoost         & 0,647           & 0,632           & 0,630             & 0,720          & 0,649 & 0,643 & 0,620 \\
+\bottomrule
+\end{tabular}
+\fonte
+\end{table*}
+
+Os valores de MAE por subgrupo são relativamente próximos. O subgrupo
+\textit{``Prefer not to say''} apresenta erro maior na Regressão Linear e no
+XGBoost, o que pode estar associado à menor representatividade amostral.
+Por regime de trabalho, o grupo \textit{remote} apresenta MAE ligeiramente
+menor nos três modelos.
+
+Esta análise é inicial e não descarta viés preditivo. Uma auditoria de
+equidade mais completa exigiria métricas formais de \textit{fairness}, como
+\textit{equalized odds} e \textit{demographic parity}, além de análise de
+representatividade dos grupos.
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Etapa 5 — Produto Final: Sistema de \textit{Scoring}}
+\label{sec:scoring_sec}
+% ═════════════════════════════════════════════════════════════════════════════
+
+\subsection{Função \texttt{predict_burnout}}
+
+O módulo \texttt{src/scoring.py} expõe a função
+\texttt{predict_burnout(employee)}, que recebe um dicionário com atributos
+brutos de um funcionário e retorna um escore normalizado de risco e uma
+classificação. A implementação atual carrega os artefatos
+\texttt{imputer.pkl}, \texttt{scaler.pkl} e \texttt{xgboost_model.pkl}.
+
+Essa escolha deve ser interpretada corretamente: pelos resultados da
+avaliação, a Regressão Linear é o modelo recomendado quando o critério é
+maior R² e menor RMSE no conjunto de teste. O XGBoost permanece como modelo
+da interface implementada por ser o artefato atualmente carregado pelo
+módulo de \textit{scoring} e por apresentar desempenho próximo ao
+\textit{baseline}. Em uma versão futura, recomenda-se alinhar a interface
+ao modelo recomendado pelas métricas ou justificar explicitamente a escolha
+do XGBoost como decisão de produto.
+
+Internamente, a função aplica as mesmas transformações usadas no treino:
+
+\begin{enumerate}
+\item Preenchimento de \texttt{Mental_Health_Status} ausente com \texttt{None};
+\item Encoding das variáveis categóricas via \texttt{ENCODING_MAP};
+\item Cálculo de \texttt{has_physical_issue};
+\item Imputação via \texttt{imputer.pkl};
+\item Normalização via \texttt{scaler.pkl};
+\item Predição via \texttt{xgboost_model.pkl};
+\item Normalização do escore:
+$\texttt{score} = \text{clamp}(\hat{y}/2,;0,;1)$;
+\item Classificação de risco conforme a Tabela~\ref{tab:risk}.
+\end{enumerate}
+
+\begin{table}[!t]
+\centering
+\caption{Faixas de risco e ações recomendadas.}
+\label{tab:risk}
+\begin{tabular}{ccl}
+\toprule
+\textbf{Score}    & \textbf{Classificação} & \textbf{Ação recomendada} \\
+\midrule
+$[0{,}0;;0{,}3]$ & Baixo                  & Acompanhar rotina normal  \\
+$(0{,}3;;0{,}6)$ & Moderado               & Atenção recomendada       \\
+$[0{,}6;;1{,}0]$ & Alto                   & Encaminhar para avaliação profissional \\
+\bottomrule
+\end{tabular}
+\fonte
+\end{table}
+
+\begin{lstlisting}[caption={Uso programático de \texttt{predict_burnout}
+via \texttt{src/scoring.py}.}]
+from src.scoring import predict_burnout
+
+score, risco = predict_burnout({
+"Age":                     40,
+"Gender":                  "Male",
+"Region":                  "North America",
+"Industry":                "Finance",
+"Job_Role":                "Project Manager",
+"Work_Arrangement":        "Hybrid",
+"Hours_Per_Week":          50,
+"Mental_Health_Status":    "Anxiety",
+"Work_Life_Balance_Score": 3,
+"has_physical_issue":      0,
+"Social_Isolation_Score":  3,
+"Salary_Range":            "$60K-80K",
+})
+
+# Saida: score = 0.5630  |  risco = 'moderado'
+
+\end{lstlisting}
+
+\subsection{Script interativo — \texttt{prever.py}}
+
+Para uso operacional, o projeto inclui \texttt{prever.py}, um script de
+linha de comando interativo. Ao executar \texttt{python prever.py}, o
+sistema solicita campos estruturados sobre o funcionário avaliado:
+
+\begin{itemize}
+\item Nome do funcionário, usado apenas para exibição;
+\item Gênero;
+\item Idade;
+\item Região geográfica;
+\item Setor ou indústria;
+\item Cargo;
+\item Regime de trabalho;
+\item Horas trabalhadas por semana;
+\item Condição de saúde mental reportada;
+\item Equilíbrio vida-trabalho;
+\item Problemas físicos relatados;
+\item Nível de isolamento social;
+\item Faixa salarial anual.
+\end{itemize}
+
+Ao concluir a entrada, o sistema exibe o escore calculado, a classificação
+de risco e a orientação correspondente:
+
+\begin{lstlisting}[caption={Exemplo de saída do \texttt{prever.py}
+para um caso de risco moderado.}]
+=================================
+
+# RESULTADO — JOAO SILVA
+
+Score    : 0.5924  [##########        ]
+Risco    : MODERADO
+Orientacao: Atencao recomendada. Acompanhar de perto.
+=====================================================
+
+\end{lstlisting}
+
+O script chama \texttt{predict_burnout()} do módulo de \textit{scoring},
+mantendo separação entre entrada/apresentação e lógica de predição. Os
+casos de referência devem ser interpretados como demonstrações técnicas,
+não como validação clínica de risco.
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Limitações}
+\label{sec:limit}
+% ═════════════════════════════════════════════════════════════════════════════
+
+\begin{enumerate}
+\item \textbf{Dados de survey auto-reportado.} O conjunto reúne respostas
+voluntárias, sujeitas a viés de resposta, viés de seleção e
+imprecisões de autopercepção. As métricas devem ser interpretadas
+como desempenho em um \textit{benchmark} de survey, não como
+garantia de desempenho em dados reais de RH corporativo.
+
+\item \textbf{Baixo sinal preditivo.} As correlações entre as
+      \textit{features} numéricas e o alvo são fracas. O melhor R² no
+      conjunto de teste foi 0,040, e o Random Forest apresentou R²
+      negativo. Isso indica que as variáveis disponíveis explicam apenas
+      pequena parte da variação observada no alvo.
+
+\item \textbf{Caráter preditivo, não diagnóstico.} O escore é uma
+      pontuação estatística de risco. Ele não constitui diagnóstico de
+      saúde mental e não substitui avaliação profissional.
+
+\item \textbf{Possível circularidade em \texttt{Mental\_Health\_Status}.}
+      A variável \texttt{Mental\_Health\_Status} contém a categoria
+      \texttt{Burnout}. Embora ela seja uma condição reportada e não o
+      alvo ordinal \texttt{Burnout\_Level}, sua presença deve ser tratada
+      com cautela. Em aplicações futuras, recomenda-se testar versões do
+      modelo removendo ou recodificando essa categoria.
+
+\item \textbf{Encoding de variáveis nominais.} Variáveis nominais como
+      \texttt{Gender}, \texttt{Region}, \texttt{Industry} e
+      \texttt{Job\_Role} foram codificadas por mapeamento numérico. Esse
+      procedimento simplifica o pipeline, mas pode introduzir relações
+      ordinais artificiais. Alternativas como \textit{one-hot encoding}
+      devem ser avaliadas em versões futuras.
+
+\item \textbf{Análise de equidade inicial.} A comparação de MAE por
+      subgrupo é uma verificação preliminar. Métricas formais de
+      \textit{fairness} não foram aplicadas.
+
+\item \textbf{Ausência de temporalidade.} Todos os registros foram
+      coletados em junho de 2025. Sem dados longitudinais, o modelo não
+      captura tendências sazonais nem mudanças no risco de burnout ao
+      longo do tempo.
+
+\item \textbf{Alinhamento entre avaliação e scoring.} A avaliação aponta
+      a Regressão Linear como modelo recomendado por desempenho no teste,
+      enquanto a interface atual utiliza XGBoost. Essa diferença deve ser
+      corrigida ou justificada em versões futuras.
+
+\end{enumerate}
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Conclusão}
+\label{sec:conc}
+% ═════════════════════════════════════════════════════════════════════════════
+
+Este trabalho apresentou um \textit{pipeline} modular e reprodutível para
+predição e classificação de risco de \textit{burnout}, alinhado aos ODS~3,
+ODS~8 e ODS~10 da ONU. O sistema foi construído em Python e organizado em
+cinco etapas: análise exploratória, pré-processamento, treinamento,
+avaliação e \textit{scoring}.
+
+A comparação entre Regressão Linear, Random Forest e XGBoost mostrou que
+os três modelos apresentaram erro absoluto médio próximo, mas baixo poder
+explicativo. No conjunto de teste, a Regressão Linear obteve o melhor
+desempenho numérico, com MAE de 0,635, RMSE de 0,764 e R² de 0,040. O
+XGBoost apresentou desempenho próximo, com MAE de 0,640 e R² de 0,036, e
+foi o modelo carregado pela interface de \textit{scoring}. O Random Forest
+teve o pior resultado, com R² negativo.
+
+Os resultados indicam que a principal limitação do estudo está no sinal
+preditivo disponível no conjunto de dados, não apenas na escolha do
+algoritmo. As \textit{features} analisadas capturam parte limitada da
+variação do \texttt{Burnout_Level}. Mesmo assim, a EDA revelou diferenças
+relevantes entre subgrupos, especialmente a associação entre regime
+\textit{remote} e maior burnout médio (1,33 vs.\ 0,96 no regime presencial).
+
+O produto final, \texttt{prever.py}, disponibiliza uma interface de terminal
+para cálculo de escore de risco. Seu uso deve ser restrito à triagem
+estatística e ao apoio à priorização de acompanhamento, sem substituir
+avaliação profissional. Como trabalhos futuros, recomendam-se: alinhar o
+modelo da interface ao modelo recomendado pela avaliação; testar
+\textit{one-hot encoding} para variáveis nominais; avaliar a remoção ou
+recodificação da categoria \texttt{Burnout} em
+\texttt{Mental_Health_Status}; aplicar auditoria formal de
+\textit{fairness}; validar o sistema em dados reais de RH; e implementar
+monitoramento de \textit{drift} com retreinamento periódico.
+
+% ─────────────────────────────────────────────────────────────────────────────
+% REFERÊNCIAS — ABNT NBR 6023:2018
+% ─────────────────────────────────────────────────────────────────────────────
+\clearpage
+\renewcommand{\refname}{REFERÊNCIAS}
+\addcontentsline{toc}{section}{REFERÊNCIAS}
+\begin{thebibliography}{99}
+\setlength{\itemsep}{6pt}
+
+\bibitem{maslach1981}
+MASLACH, Christina; JACKSON, Susan E\@.
+The measurement of experienced burnout.
+\textbf{Journal of Organizational Behavior}, [S.l.], v.~2, n.~2,
+p.~99--113, 1981.
+
+\bibitem{salvagioni2017}
+SALVAGIONI, Denise Albieri Jodas et al.
+Physical, psychological and occupational consequences of job burnout:
+a systematic review of prospective studies.
+\textbf{PLOS ONE}, [S.l.], v.~12, n.~10, e0185781, 2017.
+Disponível em: \url{https://doi.org/10.1371/journal.pone.0185781}.
+Acesso em: jun.~2026.
+
+\bibitem{onu_ods}
+ORGANIZAÇÃO DAS NAÇÕES UNIDAS (ONU).
+\textbf{Objetivos de Desenvolvimento Sustentável}.
+Nova York: ONU, 2015.
+Disponível em: \url{https://brasil.un.org/pt-br/sdgs}.
+Acesso em: jun.~2026.
+
+\bibitem{breiman2001}
+BREIMAN, Leo.
+Random Forests.
+\textbf{Machine Learning}, [S.l.], v.~45, n.~1, p.~5--32, 2001.
+Disponível em: \url{https://doi.org/10.1023/A:1010933404324}.
+Acesso em: jun.~2026.
+
+\bibitem{chen2016}
+CHEN, Tianqi; GUESTRIN, Carlos.
+XGBoost: a scalable tree boosting system.
+In: \textbf{INTERNATIONAL CONFERENCE ON KNOWLEDGE DISCOVERY AND DATA
+	MINING}, 22., 2016, San Francisco.
+\textbf{Anais~[...]}. New York: ACM, 2016. p.~785--794.
+Disponível em: \url{https://arxiv.org/abs/1603.02754}.
+Acesso em: jun.~2026.
+
+\bibitem{sklearn}
+PEDREGOSA, Fabian et al.
+Scikit-learn: machine learning in Python.
+\textbf{Journal of Machine Learning Research}, [S.l.], v.~12,
+p.~2825--2830, 2011.
+Disponível em: \url{https://scikit-learn.org}.
+Acesso em: jun.~2026.
+
+\bibitem{xgboost_lib}
+XGBOOST DEVELOPERS.
+\textbf{XGBoost documentation}. [S.l.]: XGBoost, 2024.
+Disponível em: \url{https://xgboost.readthedocs.io}.
+Acesso em: jun.~2026.
+
+\bibitem{kaggle_dataset}
+PURI, Pratyush.
+\textbf{Remote Work Health Impact Survey 2025}. [S.l.]: Kaggle, 2025.
+Disponível em:
+\url{https://www.kaggle.com/datasets/pratyushpuri/remote-work-health-impact-survey-2025}.
+Acesso em: jun.~2026.
+
+\end{thebibliography}
+
+\end{document}
