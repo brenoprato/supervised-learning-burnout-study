@@ -1,6 +1,6 @@
 """
 Testes unitários e de integração para o módulo de Análise Exploratória de Dados (EDA).
-Valida os critérios de aceitação da SPEC 2.1 e os checkpoints da Feature 1 do PLAN.
+Valida os critérios de aceitação da Feature 1 (Análise Exploratória).
 Dataset: Remote Work Health Impact Survey 2025
 """
 
@@ -131,7 +131,7 @@ def test_missing_in_expected_columns():
     assert not unexpected, f"Colunas inesperadas com NaN: {unexpected}"
 
 
-# ── Critério SPEC 2.1: distribuição da variável alvo ─────────────────────────
+# ── Critério: distribuição da variável alvo ─────────────────────────
 
 
 def test_burnout_distribution_plot_generated(tmp_path):
@@ -141,7 +141,7 @@ def test_burnout_distribution_plot_generated(tmp_path):
     assert path.name == "burnout_distribution.png"
 
 
-# ── Critério SPEC 2.1: mapa de calor ─────────────────────────────────────────
+# ── Critério: mapa de calor ─────────────────────────────────────────
 
 
 def test_correlation_heatmap_generated(tmp_path):
@@ -151,7 +151,7 @@ def test_correlation_heatmap_generated(tmp_path):
     assert path.name == "correlation_heatmap.png"
 
 
-# ── Critério SPEC 2.1: análises por subgrupo ─────────────────────────────────
+# ── Critério: análises por subgrupo ─────────────────────────────────
 
 
 def test_work_arrangement_values():

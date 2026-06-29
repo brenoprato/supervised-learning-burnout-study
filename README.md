@@ -6,7 +6,7 @@ Sistema de predição de risco de esgotamento profissional (burnout) baseado em 
 
 ---
 
-## Alinhamento com os ODS da ONU (SPEC 5.7)
+## Alinhamento com os ODS da ONU
 
 | ODS | Conexão |
 |---|---|
@@ -44,7 +44,12 @@ python -m venv venv
 source venv/bin/activate          # Linux/macOS
 # venv\Scripts\activate           # Windows
 
-# 2. Instalar dependências
+# 2. Baixar o dataset
+# Faça download do survey_2025.csv em:
+# https://www.kaggle.com/datasets/pratyushpuri/remote-work-health-impact-survey-2025
+# E coloque em: datasets/survey_2025.csv
+
+# 3. Instalar dependências
 pip install -r requirements.txt
 ```
 
@@ -149,27 +154,15 @@ ia_final/
 ├── docs/                  # Documentação
 │   ├── architecture.md
 │   └── limitations.md
+├── infra/                 # Configuração de infraestrutura
+│   └── setup.md           # Instruções de setup
 ├── main.py                # Orquestrador
 ├── prever.py              # Interface interativa de terminal
 ├── requirements.txt
-└── guia.md                # Guia prático do projeto
 ```
-
----
-
-## Documentação
-
-| Documento | Conteúdo |
-|---|---|
-| [SPEC.md](SPEC.md) | Especificação funcional e regras de negócio |
-| [PLAN.md](PLAN.md) | Plano de implementação e arquitetura |
-| [docs/architecture.md](docs/architecture.md) | Arquitetura detalhada dos componentes |
-| [docs/limitations.md](docs/limitations.md) | Limitações declaradas do sistema |
-
 ---
 
 ## Limitações
-
 Ver [docs/limitations.md](docs/limitations.md) para declaração completa. Resumo:
 
 - Dataset de survey auto-reportado — R²≈0,04 é típico para dados reais de saúde ocupacional; correlações fracas limitam o poder preditivo

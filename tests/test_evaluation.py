@@ -1,6 +1,6 @@
 """
 Testes unitários e de integração para o módulo de Avaliação dos Modelos.
-Valida os critérios de aceitação da SPEC 2.4 e os checkpoints da Feature 4 do PLAN.
+Valida os critérios de aceitação da Feature 4 (Avaliação dos Modelos).
 Dataset: Remote Work Health Impact Survey 2025
 
 Estratégia: fixture sintética pequena para testes unitários rápidos;

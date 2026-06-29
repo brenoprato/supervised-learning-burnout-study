@@ -1,6 +1,6 @@
 """
 Testes unitários e de integração para o módulo de Scoring Individual.
-Valida os critérios de aceitação da SPEC 2.5 e os checkpoints da Feature 5 do PLAN.
+Valida os critérios de aceitação da Feature 5 (Scoring Individual).
 Dataset: Remote Work Health Impact Survey 2025
 """
 
@@ -64,7 +64,7 @@ HIGH_RISK_EMPLOYEE = {
 }
 
 
-# ── Critério SPEC 2.5: classificação de risco (RN-02) ────────────────────────
+# ── Critério: classificação de risco (RN-02) ────────────────────────
 
 
 class TestClassifyRisk:
@@ -103,7 +103,7 @@ class TestClassifyRisk:
             assert classify_risk(v) in valid
 
 
-# ── Critério SPEC 2.5: pré-processamento do registro ─────────────────────────
+# ── Critério: pré-processamento do registro ─────────────────────────
 
 
 class TestPreprocessEmployee:
@@ -161,7 +161,7 @@ class TestPreprocessEmployee:
         assert df["Salary_Range"].iloc[0] == 0
 
 
-# ── Critério SPEC 2.5: função retorna score e classificação ──────────────────
+# ── Critério: função retorna score e classificação ──────────────────
 
 
 class TestPredictBurnout:

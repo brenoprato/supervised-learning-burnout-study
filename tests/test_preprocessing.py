@@ -1,6 +1,6 @@
 """
 Testes unitários e de integração para o módulo de Pré-processamento.
-Valida os critérios de aceitação da SPEC 2.2 e os checkpoints da Feature 2 do PLAN.
+Valida os critérios de aceitação da Feature 2 (Pré-processamento).
 Dataset: Remote Work Health Impact Survey 2025
 """
 

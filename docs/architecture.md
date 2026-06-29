@@ -140,6 +140,8 @@ ia_final/
 ├── docs/              # Documentação
 │   ├── architecture.md
 │   └── limitations.md
+├── infra/             # Configuração de infraestrutura
+│   └── setup.md
 ├── main.py            # Orquestrador do pipeline completo
 └── prever.py          # Interface interativa de terminal
 ```

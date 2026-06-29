@@ -8,7 +8,7 @@ Saídas:
   - models/random_forest.pkl     — Random Forest Regressor
   - models/xgboost_model.pkl     — XGBoost Regressor (hiperparâmetros otimizados)
 
-Nota: o target é ordinal (0/1/2). O pipeline de regressão é mantido conforme SPEC 2.3.
+Nota: o target é ordinal (0/1/2). O pipeline de regressão é mantido como regressão (score normalizado em scoring.py).
 O score final é normalizado para [0,1] dividindo a predição bruta por 2 em scoring.py.
 """
 

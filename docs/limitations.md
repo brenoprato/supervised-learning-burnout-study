@@ -1,6 +1,6 @@
 # Limitações Declaradas do Sistema
 
-Este documento declara explicitamente as limitações conhecidas do sistema de predição de burnout, conforme exigido pelo RNF 3.5 da SPEC.
+Este documento declara explicitamente as limitações conhecidas do sistema de predição de burnout.
 
 ---
 
@@ -68,8 +68,4 @@ plano de re-treinamento periódico.
 ---
 
 ## Referências
-
-- SPEC.md — Seção 3.5 (Limitações Declaradas)
-- SPEC.md — RN-08 (Caráter Preditivo, não Diagnóstico)
-- SPEC.md — RN-09 (Análise de Equidade)
 - Dataset: https://www.kaggle.com/datasets/pratyushpuri/remote-work-health-impact-survey-2025

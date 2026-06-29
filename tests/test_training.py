@@ -1,6 +1,6 @@
 """
 Testes unitários e de integração para o módulo de Treinamento dos Modelos.
-Valida os critérios de aceitação da SPEC 2.3 e os checkpoints da Feature 3 do PLAN.
+Valida os critérios de aceitação da Feature 3 (Treinamento dos Modelos).
 Dataset: Remote Work Health Impact Survey 2025
 
 Estratégia: fixture com dataset sintético pequeno para testes unitários rápidos;

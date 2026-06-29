@@ -1,116 +1,65 @@
 Resumo de localizações de artefatos do pipeline — ia_final
 
-Base (pasta do projeto):
-  /home/BRENO/Prog/projects/ia_final
-
 1) Modelos e artefatos (imputer / scaler / modelos treinados)
-  - project-relative: models/imputer.pkl
-    absolute: /home/BRENO/Prog/projects/ia_final/models/imputer.pkl
-  - project-relative: models/scaler.pkl
-    absolute: /home/BRENO/Prog/projects/ia_final/models/scaler.pkl
-  - project-relative: models/linear_regression.pkl
-    absolute: /home/BRENO/Prog/projects/ia_final/models/linear_regression.pkl
-  - project-relative: models/random_forest.pkl
-    absolute: /home/BRENO/Prog/projects/ia_final/models/random_forest.pkl
-  - project-relative: models/xgboost_model.pkl
-    absolute: /home/BRENO/Prog/projects/ia_final/models/xgboost_model.pkl
+   models/imputer.pkl
+   models/scaler.pkl
+   models/linear_regression.pkl
+   models/random_forest.pkl
+   models/xgboost_model.pkl
 
 2) Dados processados (splits)
-  - project-relative: data/processed/X_train.csv
-    absolute: /home/BRENO/Prog/projects/ia_final/data/processed/X_train.csv
-  - project-relative: data/processed/X_test.csv
-    absolute: /home/BRENO/Prog/projects/ia_final/data/processed/X_test.csv
-  - project-relative: data/processed/y_train.csv
-    absolute: /home/BRENO/Prog/projects/ia_final/data/processed/y_train.csv
-  - project-relative: data/processed/y_test.csv
-    absolute: /home/BRENO/Prog/projects/ia_final/data/processed/y_test.csv
+   data/processed/X_train.csv
+   data/processed/X_test.csv
+   data/processed/y_train.csv
+   data/processed/y_test.csv
 
 3) Resultados e métricas
-  - project-relative: reports/results/model_comparison.csv
-    absolute: /home/BRENO/Prog/projects/ia_final/reports/results/model_comparison.csv
-  - project-relative: reports/results/cv_results.csv
-    absolute: /home/BRENO/Prog/projects/ia_final/reports/results/cv_results.csv
-  - project-relative: reports/results/conclusion.txt
-    absolute: /home/BRENO/Prog/projects/ia_final/reports/results/conclusion.txt
-  - project-relative: reports/results/eda_summary.txt
-    absolute: /home/BRENO/Prog/projects/ia_final/reports/results/eda_summary.txt
+   reports/results/model_comparison.csv
+   reports/results/cv_results.csv
+   reports/results/conclusion.txt
+   reports/results/eda_summary.txt
 
 4) Figuras (EDA e avaliação)
-  - project-relative: reports/figures/burnout_distribution.png
-    absolute: /home/BRENO/Prog/projects/ia_final/reports/figures/burnout_distribution.png
-  - project-relative: reports/figures/correlation_heatmap.png
-    absolute: /home/BRENO/Prog/projects/ia_final/reports/figures/correlation_heatmap.png
-  - project-relative: reports/figures/burnout_by_work_location.png
-    absolute: /home/BRENO/Prog/projects/ia_final/reports/figures/burnout_by_work_location.png
-  - project-relative: reports/figures/burnout_by_gender.png
-    absolute: /home/BRENO/Prog/projects/ia_final/reports/figures/burnout_by_gender.png
-  - project-relative: reports/figures/burnout_by_industry.png
-    absolute: /home/BRENO/Prog/projects/ia_final/reports/figures/burnout_by_industry.png
-  - project-relative: reports/figures/real_vs_pred_linear_regression.png
-    absolute: /home/BRENO/Prog/projects/ia_final/reports/figures/real_vs_pred_linear_regression.png
-  - project-relative: reports/figures/real_vs_pred_random_forest.png
-    absolute: /home/BRENO/Prog/projects/ia_final/reports/figures/real_vs_pred_random_forest.png
-  - project-relative: reports/figures/real_vs_pred_xgboost.png
-    absolute: /home/BRENO/Prog/projects/ia_final/reports/figures/real_vs_pred_xgboost.png
-  - project-relative: reports/figures/feature_importance_random_forest.png
-    absolute: /home/BRENO/Prog/projects/ia_final/reports/figures/feature_importance_random_forest.png
-  - project-relative: reports/figures/feature_importance_xgboost.png
-    absolute: /home/BRENO/Prog/projects/ia_final/reports/figures/feature_importance_xgboost.png
-  - project-relative: reports/figures/equity_by_gender.png
-    absolute: /home/BRENO/Prog/projects/ia_final/reports/figures/equity_by_gender.png
-  - project-relative: reports/figures/equity_by_work_location.png
-    absolute: /home/BRENO/Prog/projects/ia_final/reports/figures/equity_by_work_location.png
+   reports/figures/burnout_distribution.png
+   reports/figures/correlation_heatmap.png
+   reports/figures/burnout_by_work_location.png
+   reports/figures/burnout_by_gender.png
+   reports/figures/burnout_by_industry.png
+   reports/figures/real_vs_pred_linear_regression.png
+   reports/figures/real_vs_pred_random_forest.png
+   reports/figures/real_vs_pred_xgboost.png
+   reports/figures/feature_importance_random_forest.png
+   reports/figures/feature_importance_xgboost.png
+   reports/figures/equity_by_gender.png
+   reports/figures/equity_by_work_location.png
 
-5) Dataset usado (final)
-  - project-relative: datasets/survey_2025.csv
-    absolute: /home/BRENO/Prog/projects/ia_final/datasets/survey_2025.csv
+5) Dataset
+   datasets/survey_2025.csv
 
 6) Relatório LaTeX compilado
-  - project-relative: relatorio.pdf
-    absolute: /home/BRENO/Prog/projects/ia_final/relatorio.pdf
+   relatorio.pdf
 
-7) Código-fonte e scripts
-  - project-relative: src/config.py
-    absolute: /home/BRENO/Prog/projects/ia_final/src/config.py
-  - project-relative: src/eda.py
-    absolute: /home/BRENO/Prog/projects/ia_final/src/eda.py
-  - project-relative: src/preprocessing.py
-    absolute: /home/BRENO/Prog/projects/ia_final/src/preprocessing.py
-  - project-relative: src/training.py
-    absolute: /home/BRENO/Prog/projects/ia_final/src/training.py
-  - project-relative: src/evaluation.py
-    absolute: /home/BRENO/Prog/projects/ia_final/src/evaluation.py
-  - project-relative: src/scoring.py
-    absolute: /home/BRENO/Prog/projects/ia_final/src/scoring.py
+7) Código-fonte
+   src/config.py
+   src/eda.py
+   src/preprocessing.py
+   src/training.py
+   src/evaluation.py
+   src/scoring.py
 
 8) Scripts de interface / orquestração
-  - project-relative: prever.py
-    absolute: /home/BRENO/Prog/projects/ia_final/prever.py
-  - project-relative: main.py
-    absolute: /home/BRENO/Prog/projects/ia_final/main.py
+   prever.py
+   main.py
 
 9) Testes
-  - project-relative: tests/test_eda.py
-    absolute: /home/BRENO/Prog/projects/ia_final/tests/test_eda.py
-  - project-relative: tests/test_preprocessing.py
-    absolute: /home/BRENO/Prog/projects/ia_final/tests/test_preprocessing.py
-  - project-relative: tests/test_training.py
-    absolute: /home/BRENO/Prog/projects/ia_final/tests/test_training.py
-  - project-relative: tests/test_evaluation.py
-    absolute: /home/BRENO/Prog/projects/ia_final/tests/test_evaluation.py
-  - project-relative: tests/test_scoring.py
-    absolute: /home/BRENO/Prog/projects/ia_final/tests/test_scoring.py
+   tests/test_eda.py
+   tests/test_preprocessing.py
+   tests/test_training.py
+   tests/test_evaluation.py
+   tests/test_scoring.py
 
 10) Documentação
-  - project-relative: README.md
-    absolute: /home/BRENO/Prog/projects/ia_final/README.md
-  - project-relative: docs/architecture.md
-    absolute: /home/BRENO/Prog/projects/ia_final/docs/architecture.md
-  - project-relative: docs/limitations.md
-    absolute: /home/BRENO/Prog/projects/ia_final/docs/limitations.md
-
----
-
-Observações:
-- Arquivos antigos do dataset removidos: datasets/train.csv, datasets/test.csv e datasets/post_pandemic_remote_work_health_impact_2025.csv (apagados).
-- Se quiser, posso criar um ZIP com os modelos e resultados ou copiar esses arquivos para outro diretório — diga qual opção prefere.
+    README.md
+    docs/architecture.md
+    docs/limitations.md
+    infra/setup.md
